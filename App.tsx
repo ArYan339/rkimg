@@ -43,8 +43,9 @@ const App: React.FC = () => {
     
     const handleError = (e: any, context: 'general' | 'upscaling' = 'general') => {
         console.error(e);
-        if (e.message && e.message.toLowerCase().includes('api key')) {
-             setError('Configuration Error: The Gemini API Key is missing or invalid. Please ensure it is configured correctly in your environment.');
+        // FIX: Update error handling to check for 'API_KEY' and provide a generic message as per guidelines.
+        if (e.message && (e.message.toLowerCase().includes('api key') || e.message.includes('API_KEY environment variable not found'))) {
+             setError('There was an issue with the API configuration.');
         } else {
             const prefix = context === 'upscaling' ? 'An error occurred during upscaling: ' : 'An error occurred: ';
             setError(`${prefix}${e.message || 'Please try again.'}`);
