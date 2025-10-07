@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { Modality } from '@google/genai';
 import type { AspectRatio, HistoryItem } from './types';
 import { ASPECT_RATIOS, SAMPLE_PROMPTS } from './constants';
-import { fileToBase64, createThumbnail } from './services/geminiService';
+import { fileToBase64, createThumbnail, getAiClient } from './services/geminiService';
 import { SectionCard } from './components/SectionCard';
 import { Accordion } from './components/Accordion';
 import { FileUploader } from './components/FileUploader';
@@ -41,6 +41,16 @@ const App: React.FC = () => {
         }
     }, [history]);
     
+    const handleError = (e: any, context: 'general' | 'upscaling' = 'general') => {
+        console.error(e);
+        if (e.message && e.message.toLowerCase().includes('api key')) {
+             setError('Configuration Error: The Gemini API Key is missing or invalid. Please ensure it is configured correctly in your environment.');
+        } else {
+            const prefix = context === 'upscaling' ? 'An error occurred during upscaling: ' : 'An error occurred: ';
+            setError(`${prefix}${e.message || 'Please try again.'}`);
+        }
+    };
+
     const runGeneration = async (promptToUse: string, fileToUse: File | null, aspectRatioToUse: AspectRatio) => {
         if (!promptToUse && !fileToUse) {
             setError('Please provide a prompt or an image to edit.');
@@ -57,7 +67,7 @@ const App: React.FC = () => {
         setIsUpscaled(false);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAiClient();
             let newImageBase64: string;
 
             if (fileToUse) {
@@ -114,8 +124,7 @@ const App: React.FC = () => {
             setHistory(prev => [newHistoryItem, ...prev.slice(0, 4)]);
 
         } catch (e: any) {
-            console.error(e);
-            setError(`An error occurred: ${e.message || 'Please try again.'}`);
+            handleError(e);
         } finally {
             setIsLoading(false);
             setLoadingMessage('');
@@ -129,7 +138,7 @@ const App: React.FC = () => {
         setError(null);
     
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAiClient();
             const mimeType = resultImage.split(';')[0].split(':')[1];
             const base64 = resultImage.split(',')[1];
             
@@ -155,8 +164,7 @@ const App: React.FC = () => {
                 throw new Error('API did not return an upscaled image.');
             }
         } catch (e: any) {
-            console.error(e);
-            setError(`An error occurred during upscaling: ${e.message || 'Please try again.'}`);
+            handleError(e, 'upscaling');
         } finally {
             setIsUpscaling(false);
         }

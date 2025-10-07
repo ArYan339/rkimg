@@ -1,4 +1,6 @@
 
+import { GoogleGenAI } from '@google/genai';
+
 export const fileToBase64 = (file: File): Promise<{ base64: string; mimeType: string }> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -45,4 +47,18 @@ export const createThumbnail = (base64Image: string, maxSize: number = 128): Pro
         };
         img.onerror = (error) => reject(error);
     });
+};
+
+let ai: GoogleGenAI;
+
+/**
+ * Returns a singleton instance of the GoogleGenAI client.
+ * It will initialize the client on the first call.
+ * @throws {Error} If the API key is not provided in the environment.
+ */
+export const getAiClient = (): GoogleGenAI => {
+    if (!ai) {
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return ai;
 };
