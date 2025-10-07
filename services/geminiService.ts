@@ -57,13 +57,11 @@ let ai: GoogleGenAI;
  * @throws {Error} If the API key is not provided in the environment.
  */
 export const getAiClient = (): GoogleGenAI => {
-    // FIX: Use process.env.API_KEY as per the coding guidelines to resolve TypeScript error and adhere to requirements.
     const apiKey = process.env.API_KEY;
 
     if (!ai) {
         if (!apiKey) {
             // Throw a specific error that can be caught by the UI to provide clear instructions.
-            // FIX: Update error message to reflect the use of API_KEY.
             throw new Error('API_KEY environment variable not found.');
         }
         ai = new GoogleGenAI({ apiKey });
